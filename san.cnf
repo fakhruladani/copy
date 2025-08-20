@@ -1,0 +1,18 @@
+[ req ]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[ req_distinguished_name ]
+C = ID
+ST = Jambi
+L = Jambi
+O = BSSN
+OU = PSSN
+CN = 192.168.56.10
+
+[ v3_req ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+IP.1 = 192.168.56.10
