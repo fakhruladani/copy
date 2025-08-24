@@ -1,157 +1,78 @@
-Penyebab error `SSL_ERROR_BAD_CERT_DOMAIN` ini adalah sertifikat SSL yang Anda buat tidak memenuhi standar browser modern, meskipun nama domain (dalam hal ini, alamat IP) terlihat cocok.
-
-Masalah utamanya ada dua:
-
-1.  Sertifikat Tidak Memiliki Subject Alternative Name (SAN): Browser modern seperti Firefox dan Chrome tidak lagi menggunakan kolom Common Name (CN) untuk mencocokkan alamat. Mereka wajib menggunakan ekstensi yang disebut Subject Alternative Name (SAN). Sertifikat server Anda (server.crt) kemungkinan besar dibuat tanpa ekstensi SAN ini.
-2.  CA (Certificate Authority) Tidak Dipercaya: Bahkan jika Anda memperbaiki masalah SAN, Anda akan menghadapi error berikutnya. Browser Anda (di mesin Kali) tidak mengenal siapa yang menandatangani sertifikat ini (CN=gangga). Anda perlu mengimpor sertifikat CA Anda (ca.crt) ke dalam "Trust Store" (Daftar Otoritas Terpercaya) di browser atau sistem operasi Anda.
-
------
-
-### Solusi Lengkap
-
-Anda perlu melakukan dua hal: membuat ulang sertifikat server dengan benar (menggunakan SAN), lalu mengimpor sertifikat CA ke browser Anda.
-
-#### 1\. Buat Ulang Sertifikat Server dengan SAN
-
-Cara termudah untuk menambahkan SAN adalah dengan menggunakan file konfigurasi OpenSSL.
-
-a. Buat file konfigurasi baru, misalnya `san.cnf`:
-
-sudo nano /etc/ssl/san.cnf
-
-b. Salin dan tempel konfigurasi berikut ke dalam file `san.cnf`:
-Pastikan untuk menyesuaikan bagian [dn] jika perlu. Bagian terpenting adalah [alt_names].
-
+1) Buat CA (Certificate Authority) sendiri
+Diperlukan karena Anda akan menandatangani sertifikat server dengan CA ini. Tanpa CA, perintah signing akan gagal membuka /etc/ssl/ca.crt.
+1.1 Buat private key CA
+sudo openssl genrsa -out /etc/ssl/ca.key 4096
+1.2 Buat sertifikat CA (self-signed)
+sudo openssl req -x509 -new -sha256 -days 3650 \
+  -key /etc/ssl/ca.key \
+  -subj "/C=ID/ST=Bali/L=Denpasar/O=BSSN/OU=PSSN/CN=My-Lab-CA" \
+  -out /etc/ssl/ca.crt
+2) Siapkan file SAN untuk server (wajib agar lolos browser modern)
+Buat san.cnf (isi non-interaktif; fokus pada [alt_names]):
+sudo tee /etc/ssl/san.cnf >/dev/null <<'EOF'
 [ req ]
 distinguished_name = req_distinguished_name
-req_extensions = v3_req
-prompt = no
+req_extensions     = v3_req
+prompt             = no
 
 [ req_distinguished_name ]
-C = ID
+C  = ID
 ST = Bali
-L = Denpasar
-O = BSSN
+L  = Denpasar
+O  = BSSN
 OU = PSSN
-CN = 192.169.100.39
+CN = 192.168.56.13
 
 [ v3_req ]
 subjectAltName = @alt_names
 
 [ alt_names ]
-IP.1 = 192.169.100.39
-
-  * IP.1 = 192.169.100.39 adalah baris kunci yang mendefinisikan SAN. Jika Anda juga punya nama domain, Anda bisa menambahkan DNS.1 = namadomain.com.
-
-c. Buat ulang Certificate Signing Request (CSR) dan Private Key:
-Perintah ini akan membuat server.key (baru) dan server.csr (baru) menggunakan konfigurasi san.cnf.
-
-# Hapus dulu file lama jika perlu
-# rm server.key server.csr server.crt
-
-# Buat key dan CSR baru dengan konfigurasi SAN
-openssl req -new -nodes -newkey rsa:2048 \
--keyout /etc/ssl/server.key \
--out /etc/ssl/server.csr \
--config /etc/ssl/san.cnf
-
-d. Tanda tangani CSR baru dengan CA Anda:
-Gunakan perintah openssl x509 yang lebih sederhana.
-
-openssl x509 -req -in /etc/ssl/server.csr \
--CA /etc/ssl/ca.crt \
--CAkey /etc/ssl/ca.key \
--CAcreateserial \
--out /etc/ssl/server.crt \
--days 365 \
--extfile /etc/ssl/san.cnf \
--extensions v3_req
-
-  * Perhatikan tambahan -extfile dan -extensions untuk memastikan ekstensi SAN dari file san.cnf disertakan dalam sertifikat final.
-
-e. Reload Apache:
-Setelah sertifikat baru (server.crt dan server.key) dibuat, muat ulang Apache.
-
+IP.1 = 192.168.56.13
+# Jika punya domain:
+# DNS.1 = contoh.domain.internal
+EOF
+Ubah semua 192.168.56.13 menjadi IP server Anda.
+3) Buat key & CSR server menggunakan SAN
+sudo openssl req -new -nodes -newkey rsa:2048 \
+  -keyout /etc/ssl/server.key \
+  -out /etc/ssl/server.csr \
+  -config /etc/ssl/san.cnf
+4) Tanda tangani CSR dengan CA Anda (sertifikat final punya SAN)
+sudo openssl x509 -req -in /etc/ssl/server.csr \
+  -CA /etc/ssl/ca.crt -CAkey /etc/ssl/ca.key -CAcreateserial \
+  -out /etc/ssl/server.crt -days 365 \
+  -extfile /etc/ssl/san.cnf -extensions v3_req
+5) Verifikasi bahwa SAN benar-benar ada
+openssl x509 -in /etc/ssl/server.crt -noout -text | grep -A1 "Subject Alternative Name"
+Anda harus melihat IP Address:192.168.56.13 (atau DNS jika ditambahkan).
+6) Pasang ke web server
+Apache:
+# contoh VirtualHost (sesuaikan path conf Anda)
+# aktifkan modul ssl bila belum
+sudo a2enmod ssl
+# pasang path cert & key di vhost :443 Anda
+# SSLCertificateFile      /etc/ssl/server.crt
+# SSLCertificateKeyFile   /etc/ssl/server.key
 sudo systemctl reload apache2
-
------
-
-#### 2\. Impor Sertifikat CA ke Browser Firefox Anda
-
-Menyalin file ca.crt ke mesin Kali Anda tidaklah cukup. Anda harus memberitahu Firefox untuk mempercayainya.
-
-1.  Buka Settings (Pengaturan) di Firefox.
-2.  Cari "certificates" dan klik tombol View Certificates... (Lihat Sertifikat...).
-3.  Pilih tab Authorities (Otoritas).
-4.  Klik tombol Import... (Impor...).
-5.  Pilih file ca.crt yang sudah Anda salin ke mesin Kali Anda.
-6.  Sebuah kotak dialog akan muncul. Centang kotak "Trust this CA to identify websites" (Percayai CA ini untuk mengidentifikasi situs web).
-7.  Klik OK.
-
-Setelah menyelesaikan kedua langkah besar di atas, tutup dan buka kembali browser Anda, lalu coba akses https://192.169.100.39 lagi. Seharusnya sekarang situs Anda akan dimuat dengan ikon gembok hijau tanpa ada error.
-
-
-Buat File Konfigurasi SAN
-sudo nano /etc/ssl/san.cnf
-Isi file dengan konfigurasi berikut (sesuaikan IP/hostname):
-[ req ]
-distinguished_name = req_distinguished_name
-req_extensions = v3_req
-prompt = no
-
-[ req_distinguished_name ]
-C = ID
-ST = Jambi
-L = Jambi
-O = BSSN
-OU = PSSN
-CN = 192.168.56.10
-
-[ v3_req ]
-subjectAltName = @alt_names
-
-[ alt_names ]
-IP.1 = 192.168.56.10
-
-Buat CSR (Certificate Signing Request) dan Private Key Baru
-Hapus file lama (jika ada)
-sudo rm /etc/ssl/server.key /etc/ssl/server.csr /etc/ssl/server.crt
-Buat private key dan CSR baru dengan konfigurasi SAN
-openssl req -new -nodes -newkey rsa:2048 \
--keyout /etc/ssl/server.key \
--out /etc/ssl/server.csr \
--config /etc/ssl/san.cnf
- 
-
-Tanda Tangani Sertifikat dengan CA
-openssl x509 -req -in /etc/ssl/server.csr \
--CA /etc/ssl/ca.crt \
--CAkey /etc/ssl/ca.key \
--CAcreateserial \
--out /etc/ssl/server.crt \
--days 365 \
--extfile /etc/ssl/san.cnf \
--extensions v3_req
- 
-
-Terapkan ke Web Server
-sudo systemctl reload apache2
- 
-Salin Sertifikat CA ke Client (Kali Linux)
-Copy file ca.crt dari server ke client Kali Linux, misalnya:
-scp user@192.168.56.10:/etc/ssl/ca.crt ~/Downloads/
-
-Import CA ke Firefox di Kali
-
-Buka Firefox → Settings.
-Cari Certificates → klik View Certificates....
-Pilih tab Authorities.
-Klik Import..., lalu pilih file ca.crt.
-Centang Trust this CA to identify websites.
-Klik OK.
- 
-Uji Koneksi HTTPS
-Coba akses di web browser
-https://192.168.56.10
-Jika langkah benar, browser akan menampilkan ikon gembok hijau (secure) tanpa error
-
+Nginx (opsional jika pakai Nginx):
+# di server block :443
+# ssl_certificate     /etc/ssl/server.crt;
+# ssl_certificate_key /etc/ssl/server.key;
+sudo nginx -t && sudo systemctl reload nginx
+7) Buat browser mempercayai CA Anda (agar tidak ada “CA tidak dipercaya”)
+Anda punya dua opsi—(A) trust di sistem dan/atau (B) trust khusus di Firefox.
+A. Trust CA di OS (Debian/Ubuntu)
+sudo cp /etc/ssl/ca.crt /usr/local/share/ca-certificates/myca.crt
+sudo update-ca-certificates
+Ini menambahkan CA ke trust store sistem. Aplikasi yang mengikuti trust store OS (curl, docker, beberapa browser berbasis Chromium) akan mempercayai sertifikat server Anda.
+B. Trust CA di Firefox (punya store sendiri)
+1.	Buka Settings → Privacy & Security → Certificates.
+2.	Klik View Certificates… → Authorities → Import….
+3.	Pilih file ca.crt.
+4.	Centang “Trust this CA to identify websites.”
+5.	OK, lalu restart Firefox.
+8) Uji akses
+Akses https://192.168.56.13 (atau IP/domain Anda).
+Jika konfigurasi benar:
+•	Tidak ada lagi SSL_ERROR_BAD_CERT_DOMAIN (karena SAN sudah ada).
+•	Tidak ada lagi peringatan “CA tidak dipercaya” (karena CA di-import).
