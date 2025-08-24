@@ -1,18 +1,84 @@
-[ req ]
-distinguished_name = req_distinguished_name
-req_extensions = v3_req
-prompt = no
+Benar—Zimbra **tidak memakai Apache/nginx sistem**. Zimbra membawa **nginx internal** (untuk proxy) dan **Jetty** (mailboxd) sendiri, serta tool manajemen sertifikat bernama **`zmcertmgr`**. Jadi, jangan sentuh `/etc/nginx` atau `a2enmod`. Gunakan langkah khusus Zimbra berikut.
 
-[ req_distinguished_name ]
-C = ID
-ST = Jambi
-L = Jambi
-O = BSSN
-OU = PSSN
-CN = 192.168.56.10
+## Alur pasang sertifikat di Zimbra (pakai sertifikat & CA yang sudah Anda buat)
 
-[ v3_req ]
-subjectAltName = @alt_names
+> Berlaku untuk ZCS 8.7+ / 9.x, single-server. Gantilah IP/hostname sesuai lingkungan Anda.
 
-[ alt_names ]
-IP.1 = 192.168.56.10
+### 1) Salin file sertifikat ke direktori Zimbra
+
+Pastikan private key **tidak ber-passphrase**. Jika masih ber-passphrase, hilangkan dulu:
+
+```bash
+# (opsional) hapus passphrase kalau diminta saat deploy
+openssl rsa -in /etc/ssl/server.key -out /etc/ssl/server_unenc.key && \
+sudo mv /etc/ssl/server_unenc.key /etc/ssl/server.key
+```
+
+Salin ke lokasi “commercial” Zimbra:
+
+```bash
+sudo mkdir -p /opt/zimbra/ssl/zimbra/commercial
+sudo cp /etc/ssl/server.key /opt/zimbra/ssl/zimbra/commercial/commercial.key
+sudo cp /etc/ssl/server.crt /opt/zimbra/ssl/zimbra/commercial/commercial.crt
+# Jika chain CA Anda lebih dari satu, gabungkan berurutan (intermediate -> root) ke file ini:
+sudo cp /etc/ssl/ca.crt /opt/zimbra/ssl/zimbra/commercial/commercial_ca.crt
+
+sudo chown zimbra:zimbra /opt/zimbra/ssl/zimbra/commercial/* 
+sudo chmod 640 /opt/zimbra/ssl/zimbra/commercial/commercial.key
+sudo chmod 644 /opt/zimbra/ssl/zimbra/commercial/commercial.crt /opt/zimbra/ssl/zimbra/commercial/commercial_ca.crt
+```
+
+### 2) Verifikasi kecocokan key, cert, dan chain (sebagai user zimbra)
+
+```bash
+sudo su - zimbra
+/opt/zimbra/bin/zmcertmgr verifycrt comm \
+  /opt/zimbra/ssl/zimbra/commercial/commercial.key \
+  /opt/zimbra/ssl/zimbra/commercial/commercial.crt \
+  /opt/zimbra/ssl/zimbra/commercial/commercial_ca.crt
+```
+
+Jika ada error di sini, biasanya karena:
+
+* key tidak cocok dengan cert,
+* chain CA tidak lengkap/urut,
+* cert tidak memiliki **SAN** yang sesuai (IP/hostname).
+
+### 3) Deploy sertifikat ke seluruh komponen Zimbra
+
+```bash
+/opt/zimbra/bin/zmcertmgr deploycrt comm \
+  /opt/zimbra/ssl/zimbra/commercial/commercial.crt \
+  /opt/zimbra/ssl/zimbra/commercial/commercial_ca.crt
+```
+
+Perintah ini akan memasang cert untuk **nginx internal (proxy)**, **Jetty (mailboxd)**, MTA, dsb.
+
+### 4) Restart layanan Zimbra
+
+```bash
+zmcontrol restart
+# atau minimal:
+# zmproxyctl restart
+# zmmailboxdctl restart
+# zmmtactl restart
+```
+
+### 5) Konfirmasi
+
+```bash
+zmcontrol status        # pastikan proxy/mailboxd running
+echo | openssl s_client -connect mail.host.anda:443 -servername mail.host.anda 2>/dev/null | openssl x509 -noout -subject -ext subjectAltName
+```
+
+Pastikan **SAN** memuat IP/hostname yang Anda akses (mis. `IP:192.168.56.13` dan/atau `DNS:mail.example.com`).
+
+---
+
+## Catatan penting
+
+* **Hostname vs IP:** Klien biasanya mengakses Zimbra via **FQDN** (mis. `mail.example.com`). Supaya aman di semua protokol (web/IMAP/SMTP), sertifikat Anda sebaiknya memuat **SAN untuk FQDN** dan **IP** bila perlu.
+* **Kepercayaan CA:** Karena Anda memakai **CA privat**, browser/klien tetap perlu **mengimpor `ca.crt`** (seperti langkah yang sudah Anda lakukan di Firefox/OS).
+* **Tidak ada service nginx/apache di sistem:** Nginx milik Zimbra dikendalikan dengan `zmproxyctl`, bukan `systemctl nginx`.
+
+Bila Anda mau, saya bisa cek output `zmcertmgr verifycrt` yang Anda dapat dan bantu diagnosa kalau masih ada error di tahap verifikasi/deploy.
