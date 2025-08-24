@@ -89,3 +89,69 @@ Menyalin file ca.crt ke mesin Kali Anda tidaklah cukup. Anda harus memberitahu F
 7.  Klik OK.
 
 Setelah menyelesaikan kedua langkah besar di atas, tutup dan buka kembali browser Anda, lalu coba akses https://192.169.100.39 lagi. Seharusnya sekarang situs Anda akan dimuat dengan ikon gembok hijau tanpa ada error.
+
+
+Buat File Konfigurasi SAN
+sudo nano /etc/ssl/san.cnf
+Isi file dengan konfigurasi berikut (sesuaikan IP/hostname):
+[ req ]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[ req_distinguished_name ]
+C = ID
+ST = Jambi
+L = Jambi
+O = BSSN
+OU = PSSN
+CN = 192.168.56.10
+
+[ v3_req ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+IP.1 = 192.168.56.10
+
+Buat CSR (Certificate Signing Request) dan Private Key Baru
+Hapus file lama (jika ada)
+sudo rm /etc/ssl/server.key /etc/ssl/server.csr /etc/ssl/server.crt
+Buat private key dan CSR baru dengan konfigurasi SAN
+openssl req -new -nodes -newkey rsa:2048 \
+-keyout /etc/ssl/server.key \
+-out /etc/ssl/server.csr \
+-config /etc/ssl/san.cnf
+ 
+
+Tanda Tangani Sertifikat dengan CA
+openssl x509 -req -in /etc/ssl/server.csr \
+-CA /etc/ssl/ca.crt \
+-CAkey /etc/ssl/ca.key \
+-CAcreateserial \
+-out /etc/ssl/server.crt \
+-days 365 \
+-extfile /etc/ssl/san.cnf \
+-extensions v3_req
+ 
+
+Terapkan ke Web Server
+sudo systemctl reload apache2
+ 
+Salin Sertifikat CA ke Client (Kali Linux)
+Copy file ca.crt dari server ke client Kali Linux, misalnya:
+scp user@192.168.56.10:/etc/ssl/ca.crt ~/Downloads/
+
+Import CA ke Firefox di Kali
+
+Buka Firefox → Settings.
+Cari Certificates → klik View Certificates....
+Pilih tab Authorities.
+Klik Import..., lalu pilih file ca.crt.
+Centang Trust this CA to identify websites.
+Klik OK.
+ 
+Uji Koneksi HTTPS
+Coba akses di web browser
+https://192.168.56.10
+Jika langkah benar, browser akan menampilkan ikon gembok hijau (secure) tanpa error
+
