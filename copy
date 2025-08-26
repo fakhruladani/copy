@@ -1,15 +1,1 @@
-config setup
-    charondebug="ike 2, knl 2, cfg 2"
-
-conn mikrotik
-    auto=start
-    keyexchange=ikev2
-    ike=aes256-sha256-modp2048
-    esp=aes256-sha256-modp2048
-    left=%defaultroute
-    leftauth=psk
-    leftsourceip=%config
-    right=10.0.2.5   # ip public dari mikrotik
-    rightauth=psk
-    rightsubnet=10.0.2.0/24   # subnet yang didapatkan oleh kali nantinya
-    type=tunnel
+https://chatgpt.com/share/68ad35e2-434c-8007-b00c-4f8fb1d0ec1c
