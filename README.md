@@ -1,1 +1,3 @@
-https://chatgpt.com/share/68ad2106-2e04-8007-88d5-5bdc3226712c
+deb http://mirrors.ocf.berkeley.edu/kali kali-rolling main contrib non-free
+
+deb-src http://mirrors.ocf.berkeley.edu/kali kali-rolling main contrib non-free
