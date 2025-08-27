@@ -1,0 +1,108 @@
+Oke 👍 saya jelaskan fokus ke **cara menggunakan kata kunci 
+
+# PENJELASAN PENGGUNAAN `FUZZ` DI FFUF
+
+**Konsep:**
+
+* `FUZZ` adalah placeholder di command ffuf.
+* Kata `FUZZ` akan diganti dengan setiap kata dari wordlist.
+* Jadi posisi `FUZZ` menentukan *dimana fuzzing dilakukan*: bisa di path URL, parameter, subdomain, header, atau body POST.
+
+---
+
+1. Directory / File Brute Force
+
+---
+
+`FUZZ` ditempatkan di path URL.
+
+```
+ffuf -u http://target.com/FUZZ -w /usr/share/wordlists/dirb/common.txt
+```
+
+→ Wordlist akan menggantikan `FUZZ`, misalnya:
+
+* [http://target.com/admin](http://target.com/admin)
+* [http://target.com/login](http://target.com/login)
+* [http://target.com/config.php](http://target.com/config.php)
+
+Dengan extension:
+
+```
+ffuf -u http://target.com/FUZZ -w common.txt -e .php,.txt,.html
+```
+
+---
+
+2. Subdomain Enumeration
+
+---
+
+`FUZZ` ditempatkan di bagian subdomain.
+
+```
+ffuf -u http://FUZZ.target.com -w subdomains.txt
+```
+
+→ Wordlist menggantikan `FUZZ`, misalnya:
+
+* [http://admin.target.com](http://admin.target.com)
+* [http://dev.target.com](http://dev.target.com)
+* [http://test.target.com](http://test.target.com)
+
+---
+
+3. Parameter Discovery
+
+---
+
+`FUZZ` ditempatkan pada query string.
+
+```
+ffuf -u "http://target.com/index.php?FUZZ=test" -w parameters.txt
+```
+
+→ Akan mencoba parameter:
+
+* [http://target.com/index.php?id=test](http://target.com/index.php?id=test)
+* [http://target.com/index.php?page=test](http://target.com/index.php?page=test)
+* [http://target.com/index.php?user=test](http://target.com/index.php?user=test)
+
+---
+
+4. POST Data Fuzzing
+
+---
+
+`FUZZ` ditempatkan dalam body request POST.
+
+```
+ffuf -u http://target.com/login.php -w rockyou.txt -X POST -d "username=admin&password=FUZZ" -H "Content-Type: application/x-www-form-urlencoded"
+```
+
+→ Akan mencoba semua kata dari wordlist sebagai password.
+
+---
+
+5. Header Fuzzing
+
+---
+
+`FUZZ` ditempatkan dalam header.
+
+```
+ffuf -u http://target.com/ -w wordlist.txt -H "X-Forwarded-For: FUZZ"
+```
+
+→ Akan mengganti nilai header dengan wordlist, misalnya untuk bypass IP restriction.
+
+---
+
+# KESIMPULAN
+
+* `FUZZ` = posisi fuzzing.
+* Bisa dipakai di URL path, subdomain, parameter, header, maupun body POST.
+* Wordlist menggantikan `FUZZ` satu per satu.
+* Sangat fleksibel → tergantung di mana kamu menaruh `FUZZ`.
+
+---

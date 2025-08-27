@@ -1,0 +1,133 @@
+Sip, berikut **Nmap Cheatsheet** dalam format plain text supaya konsisten dengan file txt-mu.
+
+---
+
+# NMAP CHEATSHEET
+
+1. Dasar Nmap
+
+---
+
+Scan host dengan default:
+nmap <target>
+
+Scan beberapa host:
+nmap 192.168.1.1 192.168.1.2
+nmap 192.168.1.1-50
+nmap 192.168.1.0/24
+
+2. Scan Port
+
+---
+
+Scan 1000 port default:
+nmap <target>
+
+Scan port tertentu:
+nmap -p 80 <target>
+
+Scan range port:
+nmap -p 1-1000 <target>
+
+Scan semua port:
+nmap -p- <target>
+
+3. Scan Service & Version
+
+---
+
+nmap -sV <target>
+nmap -p 21,22,80 -sV <target>
+
+4. Scan OS Detection
+
+---
+
+nmap -O <target>
+nmap -A <target>        (OS detection, version, script, traceroute)
+
+5. Scan Stealth Mode
+
+---
+
+SYN scan (default root):
+nmap -sS <target>
+
+UDP scan:
+nmap -sU <target>
+
+TCP connect scan:
+nmap -sT <target>
+
+FIN scan (bypass firewall):
+nmap -sF <target>
+
+6. Aggressive Scan
+
+---
+
+nmap -A <target>
+(Meliputi OS detection, service version, script scanning, traceroute)
+
+7. Script Scanning (NSE)
+
+---
+
+Gunakan script bawaan:
+nmap --script=default <target>
+
+Gunakan kategori vuln:
+nmap --script=vuln <target>
+
+Gunakan script spesifik:
+nmap --script=http-title <target>
+nmap --script=ftp-anon <target>
+
+8. Timing dan Evasion
+
+---
+
+Atur speed scan (0-5):
+nmap -T4 <target>
+
+Fragmentasi paket:
+nmap -f <target>
+
+Gunakan decoy:
+nmap -D RND:10 <target>
+
+9. Output Nmap
+
+---
+
+Output ke file:
+nmap -oN hasil.txt <target>
+nmap -oX hasil.xml <target>
+nmap -oG hasil.grep <target>
+
+10. Contoh Workflow
+
+---
+
+1. Quick scan host alive:
+   nmap -sn 192.168.1.0/24
+
+2. Scan port terbuka:
+   nmap -p- -T4 <target>
+
+3. Scan service version:
+   nmap -sV -sC <target>
+
+4. Aggressive scan detail:
+   nmap -A <target>
+
+5. Tips Penting
+
+---
+
+* Gunakan -sC untuk script default.
+* Gunakan -Pn jika ping di-block oleh firewall.
+* Mulai dari scan cepat (-T4 -F) lalu lanjut detail.
+* Simpan hasil scan ke file untuk dokumentasi.
+
+---

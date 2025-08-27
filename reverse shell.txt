@@ -1,0 +1,96 @@
+Oke, berikut **Searchsploit Cheatsheet** dalam format plain text agar bisa langsung kamu masukkan ke file txt.
+
+---
+
+# SEARCHSPLOIT CHEATSHEET
+
+1. Dasar Searchsploit
+
+---
+
+* Searchsploit adalah CLI untuk database Exploit-DB.
+* Digunakan untuk mencari exploit publik berdasarkan software, versi, atau CVE.
+
+2. Pencarian Exploit
+
+---
+
+Cari exploit berdasarkan nama software:
+searchsploit apache
+searchsploit vsftpd
+searchsploit wordpress
+
+Cari exploit berdasarkan versi:
+searchsploit apache 2.4
+searchsploit openssh 7.2
+
+Cari exploit berdasarkan CVE:
+searchsploit cve-2017-0144
+searchsploit CVE-2021-41773
+
+3. Melihat Detail Exploit
+
+---
+
+Tampilkan path exploit:
+searchsploit -p apache 2.4
+
+Tampilkan isi exploit tanpa buka file:
+searchsploit -x linux/remote/12345.c
+
+4. Copy Exploit
+
+---
+
+Copy exploit ke direktori kerja:
+searchsploit -m linux/remote/12345.c
+
+5. Filter dan Format
+
+---
+
+Exact match:
+searchsploit -e "OpenSSH 7.2"
+
+Case-insensitive:
+searchsploit -c apache
+
+Tampilkan hanya exploit (tidak termasuk shellcode):
+searchsploit -t apache
+
+6. Update Database
+
+---
+
+Update database exploit ke versi terbaru:
+searchsploit -u
+
+7. Contoh Workflow
+
+---
+
+Target pakai vsftpd 2.3.4
+
+1. Cari exploit:
+   searchsploit vsftpd 2.3.4
+   Output: unix/remote/17491.c
+
+2. Lihat isi exploit:
+   searchsploit -x unix/remote/17491.c
+
+3. Copy exploit:
+   searchsploit -m unix/remote/17491.c
+
+4. Compile exploit:
+   gcc 17491.c -o vsftpd\_exploit
+   ./vsftpd\_exploit <target-ip>
+
+5. Tips Penting
+
+---
+
+* Cocokkan nama + versi service target (gunakan nmap -sV atau banner grabbing).
+* Jika exploit sudah dipatch, cek apakah masih valid.
+* Bisa digabung dengan Metasploit jika modulnya tersedia.
+
+---

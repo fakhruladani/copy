@@ -1,0 +1,86 @@
+# FFUF CHEATSHEET
+
+1. Basic Directory Brute Force
+
+---
+
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt
+
+Scan dengan extension file:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -e .php,.txt,.html
+
+2. Subdomain Brute Force
+
+---
+
+ffuf -u [http://FUZZ.target.com](http://FUZZ.target.com) -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+3. Virtual Host Discovery
+
+---
+
+ffuf -u [http://target.com](http://target.com) -H "Host: FUZZ.target.com" -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+4. Parameter Fuzzing
+
+---
+
+ffuf -u "[http://target.com/index.php?FUZZ=test](http://target.com/index.php?FUZZ=test)" -w /usr/share/wordlists/seclists/Discovery/Web-Content/burp-parameter-names.txt
+
+5. POST Data Fuzzing
+
+---
+
+ffuf -u [http://target.com/login.php](http://target.com/login.php) -w /usr/share/wordlists/rockyou.txt -X POST -d "username=admin\&password=FUZZ" -H "Content-Type: application/x-www-form-urlencoded"
+
+6. Filter Hasil
+
+---
+
+Filter status code:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -fc 404
+
+Filter ukuran respon:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -fs 1234
+
+Filter jumlah kata:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -fw 50
+
+7. Output Hasil
+
+---
+
+Simpan hasil ke file JSON:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -o hasil.json
+
+8. Speed & Performance
+
+---
+
+Atur thread:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -t 50
+
+Atur timeout request:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -timeout 10
+
+9. Wordlists Penting (ada di Kali)
+
+---
+
+/usr/share/wordlists/dirb/common.txt
+/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+/usr/share/seclists/Discovery/Web-Content/common.txt
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+10. Tips Penting
+
+---
+
+* Gunakan -fc 404 untuk menyaring halaman error palsu.
+* Gunakan wordlist kecil untuk quick scan, besar untuk deep scan.
+* Gunakan ffuf untuk fuzzing parameter dan subdomain (lebih fleksibel dibanding dirb).
+* Simpan hasil ke file JSON agar bisa diolah lebih lanjut.
+
+---
+
+Mau saya bikinkan juga **contoh workflow praktis FFuf** (misalnya: pertama scan direktori, lalu fuzz parameter, lalu cari subdomain) biar jadi langkah-langkah cepat saat ujian?

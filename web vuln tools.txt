@@ -1,0 +1,108 @@
+
+# WEB VULNERABILITY TOOLS CHEATSHEET
+
+1. Dirb (Directory Bruteforce)
+
+---
+
+Scan direktori default:
+dirb [http://target.com/](http://target.com/)
+
+Scan dengan wordlist custom:
+dirb [http://target.com/](http://target.com/) /usr/share/wordlists/dirb/common.txt
+
+Scan HTTPS:
+dirb [https://target.com/](https://target.com/)
+
+Scan dengan proxy:
+dirb [http://target.com](http://target.com) -p [http://127.0.0.1:8080](http://127.0.0.1:8080)
+
+Simpan hasil ke file:
+dirb [http://target.com](http://target.com) -o hasil.txt
+
+2. Gobuster (Directory & DNS Bruteforce)
+
+---
+
+Mode directory:
+gobuster dir -u [http://target.com](http://target.com) -w /usr/share/wordlists/dirb/common.txt
+
+Dengan extension file:
+gobuster dir -u [http://target.com](http://target.com) -w /usr/share/wordlists/dirb/common.txt -x php,txt,html
+
+Scan vhost (subdomain):
+gobuster vhost -u [http://target.com](http://target.com) -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+Scan DNS brute force:
+gobuster dns -d target.com -w /usr/share/wordlists/seclists/Discovery/DNS/namelist.txt
+
+Atur thread lebih cepat:
+gobuster dir -u [http://target.com](http://target.com) -w /usr/share/wordlists/dirb/common.txt -t 50
+
+3. FFuf (Fast Web Fuzzer)
+
+---
+
+Scan direktori:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt
+
+Scan file dengan extension:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -e .php,.txt,.html
+
+Scan subdomain:
+ffuf -u [http://FUZZ.target.com](http://FUZZ.target.com) -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+Filter status code:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -fc 404
+
+Filter panjang respon:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -fs 1234
+
+Simpan hasil ke file:
+ffuf -u [http://target.com/FUZZ](http://target.com/FUZZ) -w /usr/share/wordlists/dirb/common.txt -o hasil.json
+
+4. Nikto (Web Vulnerability Scanner)
+
+---
+
+Scan website:
+nikto -h [http://target.com](http://target.com)
+
+Scan HTTPS:
+nikto -h [https://target.com](https://target.com)
+
+Scan dengan port tertentu:
+nikto -h [http://target.com](http://target.com) -p 8080
+
+Scan dengan proxy:
+nikto -h [http://target.com](http://target.com) -useproxy [http://127.0.0.1:8080](http://127.0.0.1:8080)
+
+Scan multiple host dari file list:
+nikto -h targetlist.txt
+
+Output ke file:
+nikto -h [http://target.com](http://target.com) -o hasil.txt
+
+Gunakan plugin tertentu:
+nikto -h [http://target.com](http://target.com) -Plugins tests
+
+5. Wordlists Populer
+
+---
+
+/usr/share/wordlists/dirb/common.txt
+/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt
+/usr/share/seclists/Discovery/Web-Content/common.txt
+/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt
+
+6. Tips Penting
+
+---
+
+* Dirb, Gobuster, FFuf digunakan untuk enumerasi direktori dan file.
+* Gobuster dan FFuf bisa digunakan untuk subdomain brute force.
+* Nikto lebih fokus ke scanning vulnerability (misal outdated software, dangerous files, misconfigurations).
+* Gunakan filter (-fc, -fs) di FFuf untuk hasil bersih.
+* Kombinasikan hasil dari semua tools untuk mapping attack surface.
+
+---

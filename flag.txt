@@ -1,0 +1,79 @@
+
+# FLAG HUNTING CHEATSHEET
+
+1. Lokasi Umum Flag
+
+---
+
+* Linux:
+  /home/*/flag
+  /home/*/Desktop/flag.txt
+  /root/flag.txt
+  /var/www/html/flag.txt
+  /tmp/flag
+
+* Windows:
+  C:\Users\*\Desktop\flag.txt
+  C:\Users\*\Documents\flag.txt
+  C:\Windows\Temp\flag.txt
+  C:\flag.txt
+
+---
+
+2. Perintah Cepat (Linux)
+
+---
+
+Cari file bernama “flag”:
+find / -name flag 2>/dev/null
+find / -name "flag\*" 2>/dev/null
+
+Cari kata “flag” di semua file:
+grep -Ri "flag" / 2>/dev/null
+
+Cari file teks mencurigakan:
+find / -type f -name "\*.txt" 2>/dev/null
+
+Baca isi flag:
+cat /path/to/flag.txt
+
+---
+
+3. Perintah Cepat (Windows CMD)
+
+---
+
+Cari file bernama “flag”:
+dir C:\ /s /b | findstr flag
+
+Cari flag di Desktop semua user:
+dir C:\Users\*\Desktop /s /b | findstr flag
+
+Baca isi file flag:
+type C:\Users\student\Desktop\flag.txt
+
+---
+
+4. Perintah Cepat (Windows PowerShell)
+
+---
+
+Cari file flag:
+Get-ChildItem -Path C:\ -Recurse -Include *flag* -ErrorAction SilentlyContinue
+
+Baca isi file:
+Get-Content C:\Users\student\Desktop\flag.txt
+
+---
+
+5. Tips Praktis
+
+---
+
+* Cek folder home/user, Desktop, Documents → paling sering dipakai.
+* Flag biasanya berupa string unik (misalnya CTF{xxxxxxx}).
+* Gunakan wildcard (“flag\*”) saat mencari.
+* Jika permission ditolak → coba privilege escalation.
+* Dokumentasikan isi flag di laporan (screenshot + copy paste).
+
+--

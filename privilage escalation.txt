@@ -1,0 +1,134 @@
+Siap 👍 berikut saya buatkan **Privilege Escalation Cheatsheet** (Linux & Windows) dalam format **plain text**. Ini penting setelah dapat shell di ujian.
+
+---
+
+# PRIVILEGE ESCALATION CHEATSHEET
+
+1. Konsep
+
+---
+
+Privilege escalation = naikkan hak akses dari user biasa menjadi root/administrator.
+Jenis:
+
+* Vertical (user → root/admin).
+* Horizontal (user → user lain).
+
+---
+
+2. Linux Privilege Escalation
+
+---
+
+A. Informasi Dasar
+whoami
+id
+hostname
+uname -a
+cat /etc/os-release
+cat /etc/passwd
+sudo -l
+
+B. Cek Sudo Permissions
+sudo -l
+(jika ada command yang bisa dijalankan tanpa password → gunakan untuk root)
+Contoh:
+sudo vim -c ':!/bin/sh'
+sudo less /etc/passwd → tekan !/bin/sh
+
+Referensi cepat: GTFOBins (banyak binary bisa jadi root).
+
+C. File & Permission Misconfig
+
+* Cek file SUID:
+  find / -perm -4000 2>/dev/null
+* Jalankan SUID binary yang bisa dieksploitasi (misalnya nmap, vim, bash).
+
+D. Cron Jobs
+
+* Lihat cron:
+  cat /etc/crontab
+* Jika ada script dijalankan root tapi bisa ditulis user → modifikasi script jadi reverse shell.
+
+E. Kernel Exploit
+
+* Cek versi kernel:
+  uname -r
+* Cari exploit di searchsploit (misalnya dirtycow).
+
+F. Passwords & Keys
+
+* Cari credential di file:
+  grep -i "password" /etc/\* 2>/dev/null
+* Cek file history:
+  cat \~/.bash\_history
+* SSH keys:
+  ls -al \~/.ssh/
+
+---
+
+3. Windows Privilege Escalation
+
+---
+
+A. Informasi Dasar
+whoami
+systeminfo
+hostname
+net user
+net localgroup administrators
+wmic qfe get Caption,Description,HotFixID,InstalledOn
+
+B. Cek Privilege
+whoami /priv
+(jika SeImpersonatePrivilege → bisa exploit JuicyPotato, PrintSpoofer)
+
+C. Cari File Sensitif
+dir C:\Users\*\Desktop
+dir C:\Users\*\Documents
+findstr /si password \*.txt \*.ini \*.config
+
+D. Misconfig Service
+
+* Cek service bisa ditulis user:
+  sc qc <service>
+* Ganti binary path jadi reverse shell, restart service.
+
+E. Registry & Stored Credentials
+
+* Cek registry:
+  reg query HKLM /f password /t REG\_SZ /s
+* Saved credential:
+  cmdkey /list
+
+F. Hotfix & Patch
+
+* systeminfo → cek Windows version.
+* Cocokkan dengan exploit di searchsploit.
+
+---
+
+4. General Post-Exploitation Steps
+
+---
+
+* Cek koneksi jaringan:
+  ifconfig / ip a (Linux)
+  ipconfig (Windows)
+* Cek privilege escalation opportunity.
+* Jika gagal escalate → tetap dump data (hash, config, flag).
+* Dokumentasikan semua langkah + hasil.
+
+---
+
+5. Tips Ujian
+
+---
+
+* Jalankan **sudo -l** langsung setelah dapat shell Linux.
+* Jalankan **whoami /priv** di Windows.
+* Gunakan **find SUID + GTFOBins** untuk Linux.
+* Jika exploit kernel tidak ada, fokus ke cronjob, password di file, sudo misconfig.
+* Jangan lupa cari **flag** di Desktop/Documents.
+
+---

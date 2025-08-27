@@ -1,0 +1,109 @@
+# PENTEST REMEDIATION CHEATSHEET
+
+1. SQL Injection
+
+---
+
+* Gunakan prepared statements / parameterized query (PDO, PreparedStatement, dll).
+* Jangan gabungkan input user langsung ke query SQL.
+* Terapkan least privilege pada DB user (hanya SELECT/INSERT jika perlu).
+* Validasi dan sanitasi input (integer harus integer, dll).
+* Gunakan WAF untuk memblokir pola SQLi.
+
+2. Cross-Site Scripting (XSS)
+
+---
+
+* Escape semua input sebelum ditampilkan ke HTML.
+* Gunakan framework dengan auto-escaping (misal: Django, Rails).
+* Terapkan Content Security Policy (CSP).
+* Validasi input (jangan izinkan script/HTML tag sembarangan).
+* Gunakan HttpOnly dan Secure flag pada cookie.
+
+3. Local File Inclusion (LFI) / Remote File Inclusion (RFI)
+
+---
+
+* Jangan gunakan input user langsung untuk include/require file.
+* Gunakan whitelist file (mapping input ke file valid).
+* Matikan `allow_url_include` di PHP.
+* Sanitasi input dari karakter traversal (../).
+* Gunakan chroot atau container untuk isolasi file system.
+
+4. Command Injection
+
+---
+
+* Jangan gunakan input user langsung di system command (exec, system, os.system).
+* Gunakan library native (misal gunakan API file, bukan "cat filename").
+* Escape dan validasi input.
+* Jalankan service dengan least privilege user.
+
+5. Reverse Shell / Remote Code Execution (RCE)
+
+---
+
+* Jangan izinkan upload file arbitrary (batasi extension & content-type).
+* Simpan upload di direktori terisolasi, bukan folder web root.
+* Validasi file upload dengan whitelist, bukan blacklist.
+* Update semua komponen webserver & patch OS.
+* Gunakan SELinux/AppArmor untuk membatasi eksekusi file.
+
+6. Directory & File Brute Force (Dirb / Gobuster / FFuf)
+
+---
+
+* Nonaktifkan directory listing pada webserver (Apache: Options -Indexes).
+* Gunakan autentikasi/authorization untuk folder sensitif.
+* Pindahkan file backup (.bak, .old, .zip) dari public folder.
+* Gunakan firewall atau rate limiting untuk mencegah brute force.
+
+7. Nikto Findings (Outdated Software, Misconfigurations)
+
+---
+
+* Selalu update webserver, framework, CMS, dan plugin.
+* Hapus file default/backup (phpinfo.php, test.php).
+* Nonaktifkan banner server (ServerTokens Prod, ServerSignature Off).
+* Gunakan HTTPS dengan konfigurasi TLS kuat.
+
+8. Weak Credentials / Brute Force (Hydra, Burp Intruder)
+
+---
+
+* Terapkan password policy (panjang min 8, kombinasi huruf+angka+simbol).
+* Gunakan 2FA/MFA untuk akun sensitif.
+* Implementasikan account lockout setelah gagal login beberapa kali.
+* Hash password dengan bcrypt/argon2, jangan plaintext.
+
+9. SMB / FTP Misconfiguration
+
+---
+
+* Nonaktifkan anonymous login.
+* Gunakan FTPS/SFTP, bukan FTP plaintext.
+* Batasi akses share SMB hanya untuk user tertentu.
+* Terapkan patch security SMB (contoh: MS17-010/EternalBlue).
+
+10. Post Exploitation & Privilege Escalation
+
+---
+
+* Update kernel dan package OS.
+* Terapkan least privilege (disable sudo ALL).
+* Audit dan hapus credential hardcoded.
+* Monitor log untuk aktivitas mencurigakan.
+
+---
+
+## TIPS UMUM
+
+* Terapkan patch management → selalu update OS & software.
+* Principle of Least Privilege → hanya berikan akses yang diperlukan.
+* Defense in Depth → gabungkan WAF, IDS/IPS, firewall, logging.
+* Audit keamanan rutin & lakukan pentest berkala.
+* Backup data dan enkripsi data sensitif.
+
+---
+
+Apakah mau saya buatkan **versi tabel singkat (Vulnerability → Fix)** biar lebih cepat dibaca saat ujian, semacam “respon cepat remediation”?

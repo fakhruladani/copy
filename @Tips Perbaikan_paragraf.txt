@@ -1,0 +1,30 @@
+
+**1. SQL Injection (SQLi)**
+Kerentanan SQL Injection dapat dicegah dengan menerapkan *prepared statements* atau *parameterized query* sehingga input pengguna tidak dieksekusi langsung sebagai bagian dari query SQL. Validasi dan sanitasi input harus diterapkan, misalnya memastikan hanya angka yang diterima jika parameter seharusnya integer. Selain itu, akun database yang digunakan aplikasi sebaiknya memiliki hak akses terbatas (least privilege), hanya sesuai kebutuhan aplikasi, misalnya hanya *SELECT* tanpa hak *DROP* atau *DELETE*. Penerapan Web Application Firewall (WAF) juga dapat membantu mendeteksi dan memblokir pola SQL Injection yang mencurigakan.
+
+**2. Cross-Site Scripting (XSS)**
+XSS dapat diminimalisir dengan cara *escaping* atau *encoding* semua input pengguna sebelum ditampilkan kembali ke browser, sehingga karakter berbahaya tidak dijalankan sebagai kode JavaScript. Penggunaan framework modern yang mendukung auto-escaping, seperti Django atau Ruby on Rails, juga sangat dianjurkan. Selain itu, *Content Security Policy (CSP)* dapat membatasi eksekusi script yang tidak sah. Validasi input juga penting, yaitu hanya memperbolehkan karakter atau tag tertentu. Untuk melindungi cookie, gunakan atribut *HttpOnly* dan *Secure* agar tidak mudah dicuri melalui XSS.
+
+**3. Local File Inclusion (LFI) / Remote File Inclusion (RFI)**
+Perbaikan pada kerentanan LFI/RFI dilakukan dengan tidak pernah menggunakan input pengguna secara langsung dalam fungsi *include*, *require*, atau mekanisme pemanggilan file lain. Sebaiknya digunakan *whitelist* berupa daftar file valid yang dapat diakses. Pada PHP, pengaturan *allow\_url\_include* harus dinonaktifkan agar file dari luar tidak bisa dimasukkan. Selain itu, input harus disanitasi agar tidak mengandung karakter traversal seperti "../" yang memungkinkan keluar dari direktori yang diizinkan. Isolasi file system dengan *chroot* atau container juga dapat membatasi dampak eksploitasi.
+
+**4. Command Injection**
+Untuk mencegah *command injection*, aplikasi tidak boleh menggunakan input pengguna langsung pada perintah sistem seperti `exec()`, `system()`, atau `os.system()`. Gunakan API atau fungsi native untuk operasi file, jaringan, atau database, bukan melalui perintah shell. Jika memang harus memanggil perintah sistem, lakukan *escaping* dan validasi input secara ketat. Jalankan service dengan hak akses terbatas (least privilege user) agar jika terjadi exploit, dampaknya lebih kecil.
+
+**5. Remote Code Execution (RCE) / Reverse Shell**
+Kerentanan RCE sering muncul akibat fitur *file upload* yang tidak aman. Untuk memperbaikinya, batasi tipe file yang diizinkan dengan *whitelist* extension (misalnya hanya .jpg, .png) dan validasi *content-type*. File upload sebaiknya tidak disimpan pada folder yang bisa dieksekusi oleh webserver. Patch sistem operasi dan komponen aplikasi secara berkala untuk menutup celah RCE yang diketahui. Gunakan mekanisme kontrol akses seperti SELinux atau AppArmor untuk membatasi proses agar tidak bisa menjalankan perintah di luar konteksnya.
+
+**6. Directory & File Enumeration (Dirb, Gobuster, FFuf)**
+Kerentanan akibat *directory listing* atau file sensitif yang terekspos dapat diperbaiki dengan menonaktifkan fitur directory listing pada webserver (misalnya di Apache: `Options -Indexes`). File backup atau konfigurasi (.bak, .old, .zip, .env) tidak boleh disimpan di direktori publik web. Akses ke direktori penting harus dilindungi dengan autentikasi dan aturan firewall. Rate limiting juga dapat membantu mencegah brute force scanning oleh attacker.
+
+**7. Web Vulnerability (Nikto Findings)**
+Hasil temuan dari Nikto biasanya berupa software yang sudah usang, konfigurasi tidak aman, atau file default yang terbuka. Rekomendasinya adalah selalu melakukan *patch management* dengan memperbarui webserver, framework, CMS, dan plugin ke versi terbaru. File bawaan seperti phpinfo.php atau sample.php harus dihapus dari server. Konfigurasi server harus diperketat, misalnya dengan menyembunyikan banner versi software (Apache: `ServerTokens Prod`, `ServerSignature Off`). Penggunaan HTTPS dengan konfigurasi TLS yang kuat juga sangat disarankan untuk melindungi komunikasi data.
+
+**8. Weak Credentials & Brute Force Login**
+Kerentanan akibat kredensial lemah dapat diatasi dengan menerapkan kebijakan kata sandi yang kuat (minimal 8 karakter dengan kombinasi huruf besar, kecil, angka, dan simbol). Selain itu, implementasikan *multi-factor authentication (MFA)* pada akun sensitif. Mekanisme *account lockout* atau *rate limiting* harus diaktifkan untuk mencegah serangan brute force. Kata sandi harus disimpan dalam bentuk hash yang aman menggunakan algoritma modern seperti bcrypt atau argon2, bukan plaintext.
+
+**9. SMB / FTP Misconfiguration**
+Perbaikan pada layanan SMB dan FTP dimulai dengan menonaktifkan anonymous login yang memungkinkan akses tanpa autentikasi. Sebisa mungkin gunakan protokol aman seperti SFTP atau FTPS untuk menggantikan FTP plaintext. Akses ke *share* SMB harus dibatasi hanya untuk user yang berhak. Selain itu, pastikan patch keamanan untuk layanan SMB diterapkan, misalnya patch MS17-010 yang menutup kerentanan EternalBlue.
+
+**10. Privilege Escalation & Post Exploitation**
+Privilege escalation dapat dicegah dengan selalu memperbarui kernel dan paket sistem operasi agar exploit lokal tidak bisa digunakan. Terapkan *least privilege* pada setiap user, dan jangan memberikan hak `sudo ALL` secara sembarangan. Audit berkala harus dilakukan untuk mendeteksi credential yang tersimpan di file konfigurasi atau script. Log server juga harus dimonitor untuk mendeteksi aktivitas abnormal yang bisa menunjukkan adanya eksploitasi.

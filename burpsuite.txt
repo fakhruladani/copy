@@ -1,0 +1,105 @@
+
+# BURP SUITE CHEATSHEET
+
+1. Konsep Dasar
+
+---
+
+Burp Suite = framework untuk web penetration testing.
+Komponen utama:
+
+* Proxy → intercept request/response.
+* Repeater → kirim ulang request untuk analisis.
+* Intruder → brute force / fuzzing.
+* Scanner (pro edition) → otomatisasi scanning vulnerability.
+* Decoder → encode/decode data.
+* Comparer → bandingkan 2 respon/request.
+
+2. Setup Proxy
+
+---
+
+* Set browser proxy: 127.0.0.1:8080.
+* Import Burp CA Certificate ke browser agar HTTPS bisa dibaca.
+  (Buka [http://burpsuite](http://burpsuite) lalu download certificate).
+
+3. Proxy (Intercept Request)
+
+---
+
+* Intercept On = tahan request.
+* Forward = kirim request ke server.
+* Drop = buang request.
+* Bisa edit header, parameter, cookie sebelum diteruskan.
+
+4. Repeater (Manual Testing)
+
+---
+
+* Kirim request dari Proxy ke Repeater (Ctrl+R).
+* Modifikasi parameter → test SQLi, XSS, LFI, dll.
+* Gunakan untuk uji manual exploit.
+
+Contoh:
+Ubah parameter GET/POST dan lihat perbedaan respon server.
+
+5. Intruder (Fuzzing / Brute Force)
+
+---
+
+Mode Intruder:
+
+* Sniper → satu payload diganti per posisi.
+* Battering Ram → satu payload ke semua posisi.
+* Pitchfork → payload list sejajar (paralel).
+* Cluster Bomb → kombinasi semua payload.
+
+Contoh brute force login:
+
+* Tambahkan payload di username dan password.
+* Pilih wordlist (misalnya rockyou.txt).
+* Jalankan attack.
+
+6. Scanner (Pro)
+
+---
+
+* Mendeteksi vulnerability otomatis (SQLi, XSS, LFI, dll).
+* Bisa dijalankan pada request tertentu.
+
+7. Decoder
+
+---
+
+* Encode/Decode Base64, URL, HTML, HEX, ASCII, dll.
+* Contoh: decode cookie / JWT / input user.
+
+8. Comparer
+
+---
+
+* Bandingkan dua respon atau request.
+* Bisa dipakai untuk cek perbedaan login sukses vs gagal.
+
+9. Extension (BApp Store)
+
+---
+
+Beberapa extension populer:
+
+* Logger++ → log semua request/response.
+* Autorize → cek privilege escalation.
+* ActiveScan++ → tambahan rules scanning.
+* JSON Web Tokens → manipulasi JWT.
+
+10. Tips Penting
+
+---
+
+* Gunakan Proxy → Repeater untuk uji manual exploit.
+* Gunakan Intruder untuk brute force login, fuzzing parameter.
+* Gunakan Decoder untuk manipulasi cookie atau token.
+* Gunakan Comparer untuk analisa respon server.
+* Pastikan install CA Burp agar HTTPS bisa dibaca.
+
+---
